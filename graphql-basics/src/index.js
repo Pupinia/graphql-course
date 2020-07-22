@@ -2,22 +2,30 @@ import { GraphQLServer } from "graphql-yoga";
 
 const typeDefs = `
   type Query {
-    hello(name: String!): String!
-    location: String!
-    bio: String!
+    title: String!
+    price: Float!
+    releaseYear: Int
+    rating: Float
+    inStock: Boolean!
   }
 `;
 
 const resolvers = {
   Query: {
-    hello(_, { name }) {
-      return `Hello ${name || "World"}`;
+    title() {
+      return "Book";
     },
-    location() {
-      return "I'am live in Novosibirsk";
+    price() {
+      return 20.99;
     },
-    bio() {
-      return "I'am 28 year old";
+    releaseYear() {
+      return 1991;
+    },
+    rating() {
+      return 3.5;
+    },
+    inStock() {
+      return true;
     },
   },
 };
