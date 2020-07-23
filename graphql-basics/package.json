@@ -11,8 +11,10 @@
     "nodemon": "^2.0.4"
   },
   "dependencies": {
+    "@babel/plugin-proposal-object-rest-spread": "^7.10.4",
     "@babel/polyfill": "^7.10.4",
-    "graphql-yoga": "^1.18.3"
+    "graphql-yoga": "^1.18.3",
+    "uuid": "^8.2.0"
   },
   "scripts": {
     "start": "nodemon src/index.js --exec babel-node"
