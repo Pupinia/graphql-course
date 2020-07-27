@@ -117,7 +117,7 @@ export default {
 
     return post;
   },
-  updatePost(_, { id, data }, { db }) {
+  updatePost(_, { id, data }, { db, pubsub }) {
     const { title, body, published } = data;
     const post = db.posts.find((post) => post.id === id);
     const originalPost = { ...post };
@@ -138,11 +138,27 @@ export default {
       post.published = published;
 
       if (originalPost.published && !post.published) {
-        // deleted Event
+        pubsub.publish('post', {
+          post: {
+            mutation: 'DELETED',
+            data: originalPost
+          }
+        })
       } else if (!originalPost.published && post.published) {
-        // create Event
+        pubsub.publish('post', {
+          post: {
+            mutation: 'CREATED',
+            data: post
+          }
+        })
       }
     } else if (post.published) {
+      pubsub.publish('post', {
+        post: {
+          mutation: 'UPDATED',
+          data: post
+        }
+      })
     }
     return post;
   },
@@ -170,22 +186,34 @@ export default {
 
     db.comments.push(comment);
 
-    pubsub.publish(`comment ${postId}`, { comment });
+    pubsub.publish(`comment ${postId}`, {
+      comment: {
+        mutation: 'CREATED',
+        data: comment
+      }
+    });
 
     return comment;
   },
-  deleteComment(_, { id }, { db }) {
+  deleteComment(_, { id }, { db, pubsub }) {
     const commentIndex = db.comments.findIndex((comment) => comment.id == id);
 
     if (commentIndex === -1) {
       throw new Error("Comment not found");
     }
 
-    const deletedComments = db.comments.splice(commentIndex, 1);
+    const [deletedComment] = db.comments.splice(commentIndex, 1);
 
-    return deletedComments[0];
+    pubsub.publish(`comment ${deletedComment.postId}`, {
+      comment: {
+        mutation: 'DELETED',
+        data: deletedComment
+      }
+    });
+
+    return deletedComment;
   },
-  updateComment(_, { id, data }, { db }) {
+  updateComment(_, { id, data }, { db, pubsub }) {
     const { text } = data;
 
     const comment = db.comments.find((comment) => comment.id === id);
@@ -197,6 +225,13 @@ export default {
     if (typeof text === "string") {
       comment.text = text;
     }
+
+    pubsub.publish(`comment ${comment.postId}`, {
+      comment: {
+        mutation: 'UPDATED',
+        data: comment
+      }
+    });
 
     return comment;
   },
